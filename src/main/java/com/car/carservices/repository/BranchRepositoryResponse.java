@@ -11,7 +11,7 @@ public interface BranchRepositoryResponse extends JpaRepository<Branch, Long> {
 
     @Query("""
         SELECT new com.car.carservices.dto.BranchSearchResponseDTO(
-            c.companyName, b.branchName, s.serviceName, br.brandName, b.location, b.workdays, b.workingHours
+            c.companyName, b.branchName, s.serviceName, br.brandName, b.location
         )
         FROM Branch b
         JOIN b.company c
@@ -20,13 +20,13 @@ public interface BranchRepositoryResponse extends JpaRepository<Branch, Long> {
         JOIN ServiceEntity s ON s.serviceId = bbs.service.id
         WHERE (:brandName IS NULL OR LOWER(br.brandName) = LOWER(:brandName))
           AND (:serviceName IS NULL OR LOWER(s.serviceName) = LOWER(:serviceName))
-          AND (:workdays IS NULL OR LOWER(b.workdays) LIKE LOWER(CONCAT('%', :workdays, '%')))
+        
           AND (:location IS NULL OR LOWER(b.location) LIKE LOWER(CONCAT('%', :location, '%')))
     """)
     List<BranchSearchResponseDTO> searchBranches(
         @Param("brandName") String brandName,
         @Param("serviceName") String serviceName,
-        @Param("workdays") String workdays,
+       // @Param("workdays") String workdays,
         @Param("location") String location
     );
 }

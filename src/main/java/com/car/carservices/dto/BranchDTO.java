@@ -1,6 +1,8 @@
+// com/car/carservices/dto/BranchDTO.java
 package com.car.carservices.dto;
 
 import lombok.Data;
+import java.util.List;
 
 @Data
 public class BranchDTO {
@@ -11,12 +13,22 @@ public class BranchDTO {
     private String branchManagerName;
     private String branchManagerSurname;
     private String branchAddress;
+
+    /** Google Maps URL or plain address */
     private String location;
-    private String workdays;
-    private String workingHours;
+
     private String loginEmail;
     private String password;
     private String logoImg;
     private String branchCoverImg;
     private String status;
+
+    // persisted on branch
+    private Double latitude;
+    private Double longitude;
+
+    // request/response schedule (stored in work_days)
+    private List<String> workDays;  // ["monday", ...]
+    private String from;            // "HH:mm"
+    private String to;              // "HH:mm"
 }

@@ -40,8 +40,8 @@ public class BranchBrandSearchServiceImpl implements BranchBrandSearchService {
                 dto.setBranchId(branch.getBranchId());
                 dto.setBranchName(branch.getBranchName());
                 dto.setLocation(branch.getLocation());
-                dto.setWorkdays(branch.getWorkdays());
-                dto.setWorkingHours(branch.getWorkingHours());
+                //dto.setWorkdays(branch.getWorkdays());
+                //dto.setWorkingHours(branch.getWorkingHours());
 
                 List<String> services = bbsRepository.findByBranch_BranchId(branch.getBranchId()).stream()
                         .filter(bbs -> searchDTO.getServiceIds().contains(bbs.getService().getServiceId()))

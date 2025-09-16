@@ -1,3 +1,4 @@
+// com/car/carservices/entity/Branch.java
 package com.car.carservices.entity;
 
 import jakarta.persistence.*;
@@ -20,11 +21,15 @@ public class Branch {
     private String branchManagerSurname;
     private String branchAddress;
     private String location;
-    private String workdays;
-    private String workingHours;
     private String loginEmail;
     private String password;
     private String logoImg;
     private String branchCoverImg;
     private String status = "disapproved";
+
+    @Column(columnDefinition = "double precision")
+    private Double latitude;
+
+    @Column(columnDefinition = "double precision")
+    private Double longitude;
 }

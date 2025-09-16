@@ -11,6 +11,6 @@ public class BranchSearchResponseDTO {
     private String serviceName;
     private String brandName;
     private String location;
-    private String workdays;
-    private String workingHours;
+   // private String workdays;
+   // private String workingHours;
 }

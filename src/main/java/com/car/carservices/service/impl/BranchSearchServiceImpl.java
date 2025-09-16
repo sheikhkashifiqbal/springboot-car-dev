@@ -20,7 +20,7 @@ public class BranchSearchServiceImpl implements BranchSearchService {
         return branchRepositoryResponse.searchBranches(
             request.getBrandName(),
             request.getServiceName(),
-            request.getWorkdays(),
+           // request.getWorkdays(),
             request.getLocation()
         );
     }

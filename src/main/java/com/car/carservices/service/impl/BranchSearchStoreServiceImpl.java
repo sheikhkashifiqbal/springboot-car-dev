@@ -28,11 +28,17 @@ public class BranchSearchStoreServiceImpl implements BranchSearchStoreService {
             request.location()
         );
 
+java.util.List<String> slots = java.util.List.of(
+    "09:00","09:30","10:00","10:30","11:00","11:30","12:00","12:30",
+    "13:00","13:30","14:00","14:30","15:00","15:30","16:00","16:30",
+    "17:00","17:30","18:00"
+);
+
         return branches.stream().map(branch -> new BranchAvailableSlotDTO(
             branch.getBranchId(),
             branch.getBranchName(),
             branch.getLocation(),
-            TimeSlotUtil.generateTimeSlots(branch.getWorkingHours())
+            slots
         )).toList();
     }
 }
