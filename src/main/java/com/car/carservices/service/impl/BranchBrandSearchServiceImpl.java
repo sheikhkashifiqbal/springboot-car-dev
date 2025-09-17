@@ -1,3 +1,4 @@
+// com/car/carservices/service/impl/BranchBrandSearchServiceImpl.java
 package com.car.carservices.service.impl;
 
 import com.car.carservices.dto.*;
@@ -23,25 +24,40 @@ public class BranchBrandSearchServiceImpl implements BranchBrandSearchService {
     private BrandRepository brandRepository;
 
     @Override
-    public List<BranchSearchResultDTO> searchBranches(BranchSearchDTO searchDTO) {
-        List<Branch> branches = branchRepository.findBranchesByBrandAndServices(searchDTO.getBrandId(), searchDTO.getServiceIds());
+    public List<BrandGroupSearchResultDTO> searchBranches(BranchSearchDTO searchDTO) {
 
-        Map<Long, List<Branch>> groupedByBrand = branches.stream()
-                .collect(Collectors.groupingBy(branch -> searchDTO.getBrandId()));
+        // Fetch branches that match the incoming brand & services
+        List<Branch> branches =
+            branchRepository.findBranchesByBrandAndServices(searchDTO.getBrandId(), searchDTO.getServiceIds());
 
-        List<BranchSearchResultDTO> resultList = new ArrayList<>();
+        // Group branches by brand:
+        // - If request has a brandId, use it as the single group key
+        // - Otherwise, infer the first brand linked to each branch via BBS
+        Map<Long, List<Branch>> grouped = new LinkedHashMap<>();
+        for (Branch branch : branches) {
+            Long key = (searchDTO.getBrandId() != null)
+                ? searchDTO.getBrandId()
+                : bbsRepository.findByBranch_BranchId(branch.getBranchId()).stream()
+                    .map(bbs -> bbs.getBrand().getBrandId())
+                    .findFirst()
+                    .orElse(0L); // unknown brand bucket
+            grouped.computeIfAbsent(key, k -> new ArrayList<>()).add(branch);
+        }
 
-        for (Map.Entry<Long, List<Branch>> entry : groupedByBrand.entrySet()) {
+        List<BrandGroupSearchResultDTO> result = new ArrayList<>();
+
+        for (Map.Entry<Long, List<Branch>> entry : grouped.entrySet()) {
             Long brandId = entry.getKey();
-            String brandName = brandRepository.findById(brandId).map(Brand::getBrandName).orElse("Unknown Brand");
+            String brandName = brandRepository.findById(brandId)
+                    .map(Brand::getBrandName)
+                    .orElse("Unknown Brand");
 
+            // Build branch + services list for this brand
             List<BranchWithServicesDTO> branchDTOs = entry.getValue().stream().map(branch -> {
                 BranchWithServicesDTO dto = new BranchWithServicesDTO();
                 dto.setBranchId(branch.getBranchId());
                 dto.setBranchName(branch.getBranchName());
                 dto.setLocation(branch.getLocation());
-                //dto.setWorkdays(branch.getWorkdays());
-                //dto.setWorkingHours(branch.getWorkingHours());
 
                 List<String> services = bbsRepository.findByBranch_BranchId(branch.getBranchId()).stream()
                         .filter(bbs -> searchDTO.getServiceIds().contains(bbs.getService().getServiceId()))
@@ -53,14 +69,14 @@ public class BranchBrandSearchServiceImpl implements BranchBrandSearchService {
                 return dto;
             }).collect(Collectors.toList());
 
-            BranchSearchResultDTO brandResult = new BranchSearchResultDTO();
-            brandResult.setBrandId(brandId);
-            brandResult.setBrandName(brandName);
-            brandResult.setBranches(branchDTOs);
+            BrandGroupSearchResultDTO group = new BrandGroupSearchResultDTO();
+            group.setBrandId(brandId);
+            group.setBrandName(brandName);
+            group.setBranches(branchDTOs);
 
-            resultList.add(brandResult);
+            result.add(group);
         }
 
-        return resultList;
+        return result;
     }
 }

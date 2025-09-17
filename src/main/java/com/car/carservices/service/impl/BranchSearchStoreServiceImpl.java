@@ -1,44 +1,163 @@
+// com/car/carservices/service/impl/BranchSearchStoreServiceImpl.java
 package com.car.carservices.service.impl;
 
-import com.car.carservices.dto.BranchAvailableSlotDTO;
+import com.car.carservices.dto.BranchSearchResultDTO;
 import com.car.carservices.dto.BranchSearchServiceRequestDTO;
 import com.car.carservices.entity.Branch;
-import com.car.carservices.repository.BranchServiceRepository;
+import com.car.carservices.entity.WorkDay;
+import com.car.carservices.repository.*;
 import com.car.carservices.service.BranchSearchStoreService;
-import com.car.carservices.util.TimeSlotUtil;
+import com.car.carservices.util.*;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class BranchSearchStoreServiceImpl implements BranchSearchStoreService {
 
-    private final BranchServiceRepository branchRepository;
+    private final BranchSearchRepository branchRepo;
+    private final WorkDayRepository workDayRepo;
+    private final ReservationCounterRepository resRepo;
+    private final BranchBrandServiceLiteRepository bbsRepo;
+    private final BrandRepository brandRepo;
+    private final ServiceEntityRepository serviceRepo;
+    private final RateExperienceRepository rateRepo;
 
-    public BranchSearchStoreServiceImpl(BranchServiceRepository branchRepository) {
-        this.branchRepository = branchRepository;
+    public BranchSearchStoreServiceImpl(
+            BranchSearchRepository branchRepo,
+            WorkDayRepository workDayRepo,
+            ReservationCounterRepository resRepo,
+            BranchBrandServiceLiteRepository bbsRepo,
+            BrandRepository brandRepo,
+            ServiceEntityRepository serviceRepo,
+            RateExperienceRepository rateRepo
+    ) {
+        this.branchRepo = branchRepo;
+        this.workDayRepo = workDayRepo;
+        this.resRepo = resRepo;
+        this.bbsRepo = bbsRepo;
+        this.brandRepo = brandRepo;
+        this.serviceRepo = serviceRepo;
+        this.rateRepo = rateRepo;
+    }
+
+    private static final DateTimeFormatter HHMM = DateTimeFormatter.ofPattern("HH:mm");
+
+    private static String nn(String s) {
+        return (s == null || s.isBlank()) ? null : s.trim();
+    }
+
+    private static double dv(Double x, double ifNull) {
+        return x == null ? ifNull : x.doubleValue();
     }
 
     @Override
-    public List<BranchAvailableSlotDTO> searchBranches(BranchSearchServiceRequestDTO request) {
-        List<Branch> branches = branchRepository.searchBranches(
-            request.carBrand(),
-            request.carModel(),
-            request.serviceEntity(),
-            request.location()
-        );
+    public List<BranchSearchResultDTO> searchBranches(BranchSearchServiceRequestDTO req) {
+        // record-style accessors
+        String brandName   = nn(req.carBrand());
+        String modelName   = nn(req.carModel());
+        String serviceName = nn(req.serviceEntity());
+        String city        = nn(req.location());
+        LocalDate date     = FlexibleDateParser.parse(req.date(), req.dateText());
+        String weekday     = WeekdayUtil.weekday(date); // "monday" | null
 
-java.util.List<String> slots = java.util.List.of(
-    "09:00","09:30","10:00","10:30","11:00","11:30","12:00","12:30",
-    "13:00","13:30","14:00","14:30","15:00","15:30","16:00","16:30",
-    "17:00","17:30","18:00"
-);
+        List<Branch> candidates = branchRepo.searchBranchesFlexible(brandName, modelName, serviceName, city);
+        if (candidates.isEmpty()) return Collections.emptyList();
 
-        return branches.stream().map(branch -> new BranchAvailableSlotDTO(
-            branch.getBranchId(),
-            branch.getBranchName(),
-            branch.getLocation(),
-            slots
-        )).toList();
+        Long brandId = (brandName == null) ? null :
+                brandRepo.findByBrandNameIgnoreCase(brandName).map(b -> b.getBrandId()).orElse(null);
+        Long serviceId = (serviceName == null) ? null :
+                serviceRepo.findByServiceNameIgnoreCase(serviceName).map(s -> s.getServiceId()).orElse(null);
+
+        List<BranchSearchResultDTO> results = new ArrayList<>();
+
+        for (Branch b : candidates) {
+            // 1) If date provided, ensure weekday is ACTIVE, else skip branch
+            if (date != null && weekday != null) {
+                long activeCount = workDayRepo.countActiveOnDay(b.getBranchId(), weekday);
+                if (activeCount == 0) continue;
+            }
+
+            // 2) Get day's window from work_days; fallback 09:00-18:00 if absent
+            LocalTime from = LocalTime.of(9, 0), to = LocalTime.of(18, 0);
+            if (weekday != null) {
+                Optional<WorkDay> wd = workDayRepo.findByBranch_BranchIdAndWorkingDayIgnoreCase(b.getBranchId(), weekday);
+                if (wd.isPresent()) { from = wd.get().getFrom(); to = wd.get().getTo(); }
+            }
+            List<String> rawSlots = TimeSlotUtil.slotsInclusive(from, to, 30);
+
+            // 3) Capacity-aware filtering (requires date + brandId + serviceId)
+            // 3) Capacity-aware filtering (requires date + brandId + serviceId)
+            List<String> slots = rawSlots;
+            final Double price = null; // we don't read price anymore
+
+            if (date != null && brandId != null && serviceId != null) {
+                final int cap = bbsRepo.qty(b.getBranchId(), brandId, serviceId).orElse(0);
+
+                if (cap > 0) {
+                    final Long brId = b.getBranchId();
+                    final Long svId = serviceId;
+                    final LocalDate d = date;
+
+                    slots = rawSlots.stream()
+                        .filter(t -> {
+                            LocalTime lt = LocalTime.parse(t, HHMM); // convert "HH:mm" to LocalTime
+                            return resRepo.countByBranchServiceDateTime(brId, svId, d, lt) < cap;
+                        })
+                        .collect(Collectors.toList());
+                } else {
+                    slots = Collections.emptyList();
+                }
+            }
+
+
+            // 4) Rating
+            Double rating = rateRepo.avgStarsForBranch(b.getBranchId());
+
+            // 5) Distance
+            Double distanceKm = DistanceUtil.km(req.currentLat(), req.currentLon(), b.getLatitude(), b.getLongitude());
+
+            // 6) Logo (branch/company)
+            String logoUrl = b.getLogoImg();
+
+            results.add(new BranchSearchResultDTO(
+                    b.getBranchId(),
+                    b.getBranchName(),
+                    b.getLocation(),
+                    rating,
+                    distanceKm,
+                    logoUrl,
+                    slots,
+                    price
+            ));
+        }
+
+        // 7) Sorting — works whether sortBy is an enum or a string
+        // 7) Sorting — distance/rating only
+        Object sortByObj = req.sortBy(); // works if enum or string
+        if (sortByObj != null) {
+            String sortKey = sortByObj.toString().toUpperCase(Locale.ROOT);
+            switch (sortKey) {
+                case "DISTANCE_CLOSEST" -> results.sort(
+                    Comparator.comparingDouble(r -> dv(r.distanceKm(), Double.MAX_VALUE))
+                );
+                case "DISTANCE_FARTHEST" -> results.sort(
+                    Comparator.comparingDouble((BranchSearchResultDTO r) -> dv(r.distanceKm(), -1.0)).reversed()
+                );
+                //case "RATING_HIGH_TO_LOW" -> results.sort(
+                    //Comparator.comparingDouble(r -> dv(r.companyRating(), -1.0)).reversed()
+                //);
+                case "RATING_LOW_TO_HIGH" -> results.sort(
+                    Comparator.comparingDouble(r -> dv(r.companyRating(), Double.MAX_VALUE))
+                );
+                default -> { /* ignore unknown values */ }
+            }
+        }
+
+        return results;
     }
 }

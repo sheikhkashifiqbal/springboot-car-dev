@@ -20,6 +20,9 @@ public class ReservationServiceRequest {
     private ServiceEntity service;
 
     private LocalDate reservationDate;
+    // import java.time.LocalTime;
+    @Column(name = "reservation_time")
     private LocalTime reservationTime;
+
     private String reservationStatus;
 }
