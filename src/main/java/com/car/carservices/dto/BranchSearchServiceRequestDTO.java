@@ -3,6 +3,8 @@ package com.car.carservices.dto;
 
 import java.time.LocalDate;
 
+
+
 public record BranchSearchServiceRequestDTO(
     String carBrand,          // nullable
     String carModel,          // nullable
@@ -10,8 +12,12 @@ public record BranchSearchServiceRequestDTO(
     LocalDate date,           // supports ISO "yyyy-MM-dd"
     String dateText,          // also supports "10 Sep", "20 Dec"
     String location,          // filter by city (nullable)
+    
+    
     Double currentLat,        // nullable (for distance)
     Double currentLon,        // nullable (for distance)
+    
+    
     SortBy sortBy             // nullable
 ) {
     public enum SortBy {

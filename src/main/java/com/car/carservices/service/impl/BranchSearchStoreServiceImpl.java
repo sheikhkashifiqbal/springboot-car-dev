@@ -119,8 +119,13 @@ public class BranchSearchStoreServiceImpl implements BranchSearchStoreService {
             Double rating = rateRepo.avgStarsForBranch(b.getBranchId());
 
             // 5) Distance
-            Double distanceKm = DistanceUtil.km(req.currentLat(), req.currentLon(), b.getLatitude(), b.getLongitude());
-
+           // Double distanceKm = DistanceUtil.km(req.currentLat(), req.currentLon(), b.getLatitude(), b.getLongitude());
+            Double distanceKm = DistanceUtil.km(
+            req.currentLat(),  // may be null if not provided
+            req.currentLon(), // may be null if not provided
+            b.getLatitude(),
+            b.getLongitude()
+        );
             // 6) Logo (branch/company)
             String logoUrl = b.getLogoImg();
 
