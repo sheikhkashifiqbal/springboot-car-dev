@@ -65,8 +65,20 @@ public class BranchSearchStoreServiceImpl implements BranchSearchStoreService {
         LocalDate date     = FlexibleDateParser.parse(req.date(), req.dateText());
         String weekday     = WeekdayUtil.weekday(date); // "monday" | null
 
-        List<Branch> candidates = branchRepo.searchBranchesFlexible(brandName, modelName, serviceName, city);
-        if (candidates.isEmpty()) return Collections.emptyList();
+        List<Branch> candidates = branchRepo.searchBranchesFlexibleNoCity(brandName, modelName, serviceName);
+
+        if (city != null) {
+        final String c = city.toLowerCase(java.util.Locale.ROOT);
+        candidates = candidates.stream()
+            .filter(b -> {
+                String loc = b.getLocation();  // assuming entity maps location as String
+                return loc != null && loc.toLowerCase(java.util.Locale.ROOT).contains(c);
+            })
+            .toList();
+        }
+
+if (candidates.isEmpty()) return java.util.Collections.emptyList();
+
 
         Long brandId = (brandName == null) ? null :
                 brandRepo.findByBrandNameIgnoreCase(brandName).map(b -> b.getBrandId()).orElse(null);
