@@ -13,7 +13,8 @@ public class SparePartsRequestMapper {
         SparePartsRequestDTO dto = new SparePartsRequestDTO();
         dto.setSparepartsrequestId(entity.getSparepartsrequestId());
         dto.setUserId(entity.getUserId());
-        dto.setSparepartsId(entity.getSparepartsId()); // NEW
+        dto.setSparepartsId(entity.getSparepartsId());
+        dto.setBranchId(entity.getBranchId()); // NEW
         dto.setDate(entity.getDate());
         dto.setVinNumber(entity.getVinNumber());
         dto.setRequestStatus(entity.getRequestStatus());
@@ -25,7 +26,8 @@ public class SparePartsRequestMapper {
         SparePartsRequest entity = new SparePartsRequest();
         entity.setSparepartsrequestId(dto.getSparepartsrequestId());
         entity.setUserId(dto.getUserId());
-        entity.setSparepartsId(dto.getSparepartsId()); // NEW
+        entity.setSparepartsId(dto.getSparepartsId());
+        entity.setBranchId(dto.getBranchId()); // NEW
         entity.setDate(dto.getDate());
         entity.setVinNumber(dto.getVinNumber());
         entity.setRequestStatus(dto.getRequestStatus());

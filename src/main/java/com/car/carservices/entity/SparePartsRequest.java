@@ -18,9 +18,13 @@ public class SparePartsRequest {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    // NEW: FK to spare_parts(spareparts_id) - kept as scalar
+    // FK to spare_parts(spareparts_id)
     @Column(name = "spareparts_id", nullable = false)
     private Long sparepartsId;
+
+    // NEW: FK to branch(branch_id)
+    @Column(name = "branch_id", nullable = false)
+    private Long branchId;
 
     @Column(name = "date")
     private String date;

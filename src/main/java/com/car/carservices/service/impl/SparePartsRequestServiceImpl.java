@@ -40,12 +40,14 @@ public class SparePartsRequestServiceImpl implements SparePartsRequestService {
     public SparePartsRequestDTO update(Long id, SparePartsRequestDTO dto) {
         SparePartsRequest entity = repository.findById(id).orElseThrow();
         entity.setUserId(dto.getUserId());
-        entity.setSparepartsId(dto.getSparepartsId()); // NEW
+        entity.setSparepartsId(dto.getSparepartsId());
+        entity.setBranchId(dto.getBranchId());        // NEW
         entity.setDate(dto.getDate());
         entity.setVinNumber(dto.getVinNumber());
         entity.setRequestStatus(dto.getRequestStatus());
         return mapper.toDTO(repository.save(entity));
     }
+
     @Override
     public void delete(Long id) {
         repository.deleteById(id);
