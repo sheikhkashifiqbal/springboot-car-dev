@@ -2,6 +2,7 @@
 package com.car.carservices.repository.views;
 
 public interface SparePartOfferView {
+    Long getSparePartsRequestId();
     String getDate();
     String getBranchName();
     String getAddress();
@@ -10,6 +11,10 @@ public interface SparePartOfferView {
     String getSparepartsType();
     String getState();
     String getSparePart();
+    String getClassType();
+    int getQty();
+    double getPrice();
+
     String getManagerMobile();
     Long getId();
 }

@@ -18,12 +18,12 @@ public class SparePartOfferController {
     public SparePartOfferController(SparePartOfferService service) {
         this.service = service;
     }
-
-    @PostMapping("/by-user")
-    public ResponseEntity<List<SparePartOfferResponse>> byUser(@RequestBody UserIdRequest req) {
-        if (req == null || req.getUserId() == null) {
+        @PostMapping("/by-user-branch")
+    public ResponseEntity<List<SparePartOfferResponse>> byUserAndBranch(@RequestBody UserIdRequest req) {
+        if (req == null || req.getUserId() == null || req.getBranchId() == null) {
             return ResponseEntity.badRequest().build();
         }
-        return ResponseEntity.ok(service.byUserId(req.getUserId()));
+        return ResponseEntity.ok(service.byUserAndBranch(req.getUserId(), req.getBranchId()));
     }
 }
+

@@ -7,6 +7,12 @@ public class UserIdRequest {
     @JsonAlias({"userId", "user_id"})
     private Long userId;
 
+    @JsonAlias({"branchId", "branch_id"})
+    private Long branchId;
+
     public Long getUserId() { return userId; }
     public void setUserId(Long userId) { this.userId = userId; }
+
+    public Long getBranchId() { return branchId; }
+    public void setBranchId(Long branchId) { this.branchId = branchId; }
 }

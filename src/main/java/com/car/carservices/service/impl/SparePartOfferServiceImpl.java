@@ -19,13 +19,16 @@ public class SparePartOfferServiceImpl implements SparePartOfferService {
     }
 
     @Override
-    public List<SparePartOfferResponse> byUserId(Long userId) {
-        if (userId == null) return List.of();
+    public List<SparePartOfferResponse> byUserAndBranch(Long userId, Long branchId) {
+        if (userId == null || branchId == null) return List.of();
+        return map(repo.findOffersByUserAndBranch(userId, branchId));
+    }
 
-        List<SparePartOfferView> rows = repo.findOffersByUserId(userId);
-
+    
+private static List<SparePartOfferResponse> map(List<SparePartOfferView> rows) {
         return rows.stream().map(r ->
             new SparePartOfferResponse(
+                r.getSparePartsRequestId(),
                 r.getDate(),
                 r.getBranchName(),
                 r.getAddress(),
@@ -34,6 +37,11 @@ public class SparePartOfferServiceImpl implements SparePartOfferService {
                 r.getSparepartsType(),
                 r.getState(),
                 r.getSparePart(),
+                
+                r.getClassType(),
+                r.getQty(),
+                r.getPrice(),
+
                 r.getManagerMobile(),
                 r.getId()
             )
