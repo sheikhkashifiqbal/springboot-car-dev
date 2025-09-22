@@ -19,6 +19,11 @@ public class SparePartOfferServiceImpl implements SparePartOfferService {
     }
 
     @Override
+    public List<SparePartOfferResponse> byUserId(Long userId) {
+        if (userId == null) return List.of();
+        return map(repo.findOffersByUserId(userId));
+    }
+    @Override
     public List<SparePartOfferResponse> byUserAndBranch(Long userId, Long branchId) {
         if (userId == null || branchId == null) return List.of();
         return map(repo.findOffersByUserAndBranch(userId, branchId));

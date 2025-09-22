@@ -6,5 +6,6 @@ import com.car.carservices.dto.SparePartOfferResponse;
 import java.util.List;
 
 public interface SparePartOfferService {
- List<SparePartOfferResponse> byUserAndBranch(Long userId, Long branchId); // NEW
+    List<SparePartOfferResponse> byUserId(Long userId);
+    List<SparePartOfferResponse> byUserAndBranch(Long userId, Long branchId); // NEW
 }
