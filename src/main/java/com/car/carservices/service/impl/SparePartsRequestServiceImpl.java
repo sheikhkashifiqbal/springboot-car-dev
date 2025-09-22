@@ -1,3 +1,4 @@
+// com/car/carservices/service/impl/SparePartsRequestServiceImpl.java
 package com.car.carservices.service.impl;
 
 import com.car.carservices.dto.SparePartsRequestDTO;
@@ -39,15 +40,12 @@ public class SparePartsRequestServiceImpl implements SparePartsRequestService {
     public SparePartsRequestDTO update(Long id, SparePartsRequestDTO dto) {
         SparePartsRequest entity = repository.findById(id).orElseThrow();
         entity.setUserId(dto.getUserId());
+        entity.setSparepartsId(dto.getSparepartsId()); // NEW
         entity.setDate(dto.getDate());
         entity.setVinNumber(dto.getVinNumber());
-        entity.setCategoryId(dto.getCategoryId());
-        entity.setState(dto.getState());
         entity.setRequestStatus(dto.getRequestStatus());
-        entity.setCity(dto.getCity());
         return mapper.toDTO(repository.save(entity));
     }
-
     @Override
     public void delete(Long id) {
         repository.deleteById(id);

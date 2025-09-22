@@ -1,3 +1,4 @@
+// com/car/carservices/mapper/SparePartsRequestMapper.java
 package com.car.carservices.mapper;
 
 import com.car.carservices.dto.SparePartsRequestDTO;
@@ -6,29 +7,28 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class SparePartsRequestMapper {
+
     public SparePartsRequestDTO toDTO(SparePartsRequest entity) {
+        if (entity == null) return null;
         SparePartsRequestDTO dto = new SparePartsRequestDTO();
         dto.setSparepartsrequestId(entity.getSparepartsrequestId());
         dto.setUserId(entity.getUserId());
+        dto.setSparepartsId(entity.getSparepartsId()); // NEW
         dto.setDate(entity.getDate());
         dto.setVinNumber(entity.getVinNumber());
-        dto.setCategoryId(entity.getCategoryId());
-        dto.setState(entity.getState());
         dto.setRequestStatus(entity.getRequestStatus());
-        dto.setCity(entity.getCity());
         return dto;
     }
 
     public SparePartsRequest toEntity(SparePartsRequestDTO dto) {
+        if (dto == null) return null;
         SparePartsRequest entity = new SparePartsRequest();
         entity.setSparepartsrequestId(dto.getSparepartsrequestId());
         entity.setUserId(dto.getUserId());
+        entity.setSparepartsId(dto.getSparepartsId()); // NEW
         entity.setDate(dto.getDate());
         entity.setVinNumber(dto.getVinNumber());
-        entity.setCategoryId(dto.getCategoryId());
-        entity.setState(dto.getState());
         entity.setRequestStatus(dto.getRequestStatus());
-        entity.setCity(dto.getCity());
         return entity;
     }
 }
