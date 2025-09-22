@@ -22,7 +22,7 @@ public interface SparePartOfferRepository extends JpaRepository<SparePartsReques
             spr.vin_number            AS vin,
             sp.spareparts_type        AS sparepartsType,
             bbsp.state                AS state,
-            sp.condition              AS sparePart,
+            sprd.spare_part           AS sparePart,
             c.manager_mobile          AS managerMobile,
             bbsp.id                   AS id
         FROM spare_parts_request spr
@@ -30,6 +30,7 @@ public interface SparePartOfferRepository extends JpaRepository<SparePartsReques
         JOIN branch_brand_spare_part bbsp ON bbsp.spareparts_id = spr.spareparts_id
         JOIN branch                  b    ON b.branch_id       = bbsp.branch_id
         JOIN company                 c    ON c.company_id      = b.company_id
+        JOIN spare_parts_request_details sprd ON sprd.sparepartsrequest_id = spr.sparepartsrequest_id
         WHERE spr.user_id = :userId
         ORDER BY spr.date DESC, b.branch_name ASC
         """, nativeQuery = true)
