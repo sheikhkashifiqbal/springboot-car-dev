@@ -14,7 +14,9 @@ public interface SparePartOfferView {
     String getClassType();
     int getQty();
     double getPrice();
-
     String getManagerMobile();
     Long getId();
+
+    // ⬇️ add this
+    String getRequestStatus();
 }
